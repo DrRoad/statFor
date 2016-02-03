@@ -20,7 +20,7 @@ library(raster);
 library(rgdal);
 library(ggmap); 
 library(hddtools)
-library(RNetCDF)
+#library(RNetCDF)
 library(rts)
 library(rgeos)
 #library(ncdf4)
@@ -41,8 +41,8 @@ model.type <- 'mlpe'
 test.for.fit <- 'MAE'
 
 # Pre-processing
-qZts <- readAndProcessData(qZ,startDate)
-qQts <- readAndProcessData(qQ,startDate)
+qZts <- ftimeseries:::readAndProcessData(qZ,startDate)
+qQts <- ftimeseries:::readAndProcessData(qQ,startDate)
 
 
 
@@ -149,10 +149,10 @@ shinyServer(
         
     # Forecast stuff.
     predictionQilian <- reactive({
-      predictDischargeWithDischarge(qQ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
+      ftimeseries:::predictDischargeWithDischarge(qQ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
     })
     predictionZhamashike <- reactive({
-      predictDischargeWithDischarge(qZ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
+      ftimeseries:::predictDischargeWithDischarge(qZ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
     })
     output$predictionTextZhamashike <- renderText({
       qZp <- predictionZhamashike()
