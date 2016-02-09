@@ -7,7 +7,7 @@ ehthumbs.db
 *.stdout
 *.diff
 *.bkp
-.Rhistory
+*.Rhistory
 error.txt
 
 # Ignore compiled code
