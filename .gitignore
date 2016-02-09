@@ -58,4 +58,6 @@ Temporary Items
 .dropbox
 
 # Directories
-rsconnect
+rsconnect/
+rsconnect/shinyapps.io/
+rsconnect/shinyapps.io/hydrosolutionsglobal/
