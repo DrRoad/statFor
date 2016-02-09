@@ -11,7 +11,7 @@ ehthumbs.db
 error.txt
 
 # Ignore compiled code
-
+*.dcf
 
 # Folder config file
 Desktop.ini
