@@ -71,9 +71,9 @@ shinyUI(pageWithSidebar(
                                  selected = "Mean average error"),
                      sliderInput("ensembleSize",
                                  label = "Choose ensemble size",
-                                 min = 2,
-                                 max = 5,
-                                 value = 2)
+                                 min = 5,
+                                 max = 10,
+                                 value = 9)
     ),
     # Forecast.
     conditionalPanel(condition="input.conditionedPanels==4",
@@ -85,7 +85,19 @@ shinyUI(pageWithSidebar(
                                              #"season"
                                              ),
                                  selected = "day"),
-                     helpText("Computing forcast. This may take some time.")
+                     #helpText("Computing forcast. This may take some time.")
+                     conditionalPanel(
+                       condition="input.forecastHorizon=='month'",
+                       selectInput("target",
+                                   label = "Choose a month to predict average discharge for",
+                                   choices = c("January 2000"  = 1,
+                                               "February 2000" = 2,
+                                               "March 2000"    = 3,
+                                               "April 2000"    = 4,
+                                               "May 2000"      = 5),
+                                   selected = "February 2000"
+                                   )
+                     )
     )
     # Help
 #    conditionalPanel(condition="input.conditionedPanels==5",
@@ -108,22 +120,30 @@ shinyUI(pageWithSidebar(
                plotOutput("plotMonthlyDischarge",width="600px", height="200px"),
                value=2), 
       tabPanel("Model", 
+               #br(),
+               #textOutput("modelTypeText"),
+               #br(),
+               #textOutput("qualityMetricText"),
+               #br(),
+               #textOutput("ensembleText"),
                br(),
-               textOutput("modelTypeText"),
+               textOutput("scatterPlotHeaderText"),
+               plotOutput("scatterPlotQilian",width="400px",height="400px"),
                br(),
-               textOutput("qualityMetricText"),
                br(),
-               textOutput("ensembleText"),
+               br(),
+               textOutput("testSetTimeSeriesHeaderText"),
+               plotOutput("testSetTimeSeries",width="400px",height="400px"),
                value = 3),
       tabPanel("Forecast", 
                br(),
                textOutput("predictionTextQilian"),
                br(),
-               textOutput("predictionTextZhamashike"),
-               br(),
-               textOutput("predictionTextSum"),
+               #textOutput("predictionTextZhamashike"),
+               #br(),
+               #textOutput("predictionTextSum"),
                plotOutput("predictionPlotQilian",width="600px",height="200px"),
-               plotOutput("predictionPlotZhamashike",width="600px",height="200px"),
+               #plotOutput("predictionPlotZhamashike",width="600px",height="200px"),
                value=4),
 #      tabPanel("Help", value = 5)
       id = "conditionedPanels"
