@@ -39,8 +39,9 @@ error.test <- c("MAE", "RMSE")
 ensembleSize <- 1
 model.type <- 'mlpe'
 test.for.fit <- 'MAE'
+load("./data/qQ.mlpe.fit.RData")
 
-# Pre-processing
+# Pre-processing for display of input data.
 qZts <- ftimeseries:::readAndProcessData(qZ,startDate)
 qQts <- ftimeseries:::readAndProcessData(qQ,startDate)
 
@@ -133,6 +134,13 @@ shinyServer(
     }) 
     
     # Model configuration stuff.
+    predictionQilian <- reactive({
+      #ftimeseries:::predictDischargeWithDischarge(qQ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
+      ftimeseries:::predictDischargeWithDischarge2(qQ,startDate,qQ.mlpe,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
+    })
+    predictionZhamashike <- reactive({
+      ftimeseries:::predictDischargeWithDischarge(qZ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
+    })
     output$modelTypeText <- renderText({
       outtext = switch(input$model.type,
                        'mlpe' = paste("The model of choice is the multy-layer perceptron model.", 
@@ -146,54 +154,125 @@ shinyServer(
     output$ensembleText <- renderText({
       outtext = paste(input$ensembleSize," models are run in sequence.",sep="")
     })
+    output$scatterPlotHeaderText <- renderText({
+      outtext = paste("Scatter plot of the 5 years test set from 2010 to 2014.")
+    })
+    output$testSetTimeSeriesHeaderText <- renderText({
+      outtext = paste("Observed (black) and predicted (blue) discharge at Qilian station from January 2010 to December 2014.")
+    })
+    output$scatterPlotQilian <- renderPlot({
+      qQ           <- qQ # input at top
+      qQ           <- qQ[,-1]
+      qQ           <- as.vector(as.matrix(qQ))
+      qQ           <- na.omit(qQ)
+      start.date   <- startDate
+      qQts         <- dwmTimeseries(qQ,start.date[1],start.date[2],start.date[3],"mean")
+      qQ           <- qQts[[3]]
+      qQp <- predictionQilian()
+      # Get correlation of data.
+      correlation.of.data <- NULL
+      qQ.acf       <- acf(qQ,lag.max = 15)
+      for(i in 1:length(qQ.acf$acf)){
+        if((qQ.acf$acf[i] > 0.3)|(qQ.acf$acf[i] < -0.3)){correlation.of.data <-c(correlation.of.data,i)}}
+      qQ.lag       <- CasesSeries(qQ,correlation.of.data)
+      
+      # Plot for one-step prediction ----
+      predD        <- vector("list",1)
+      predD$pred   <- qQp[[1]]
+      err.mean     <- qQp[[2]]
+      h            <- holdout(qQ.lag$y, ratio = 2/3, mode = "order", seed = 12345) # just for ID later on!
+      ftimeseries:::ensScatterPlot(predD,qQ.lag,h,2,paste("mlpe: Qilian Monthly, MAE",
+                                                          toString(signif(err.mean[1], digits = 4)),
+                                                          ", R22", toString(signif(err.mean[2], digits = 4)), 
+                                                          ", RMSE",toString(signif(err.mean[3], digits = 4))),
+                                   "observation [m3/s]","forecast [m3/s]",input$ensembleSize)
+      
+    })
+    output$testSetTimeSeries <- renderPlot({
+      qQ           <- qQ # input at top
+      qQ           <- qQ[,-1]
+      qQ           <- as.vector(as.matrix(qQ))
+      qQ           <- na.omit(qQ)
+      start.date   <- startDate
+      qQts         <- dwmTimeseries(qQ,start.date[1],start.date[2],start.date[3],"mean")
+      qQ           <- qQts[[3]]
+      correlation.of.data <- NULL
+      qQ.acf       <- acf(qQ,lag.max = 15)
+      for(i in 1:length(qQ.acf$acf)){
+        if((qQ.acf$acf[i] > 0.3)|(qQ.acf$acf[i] < -0.3)){correlation.of.data <-c(correlation.of.data,i)}}
+      qQ.lag       <- CasesSeries(qQ,correlation.of.data)
+      nRuns        <- input$ensembleSize
+      
+      qQp <- predictionQilian()
+      predD$pred   <- qQp[[1]]
+      err.mean     <- qQp[[2]]
+      
+      Target       <- vector("list",nRuns)
+      for(i in 1:nRuns){
+        Target[[i]]      <- qQ.lag$y[(length(qQ.lag$y)*2/3+1):length(qQ.lag$y)]
+      }
+      pred         <- vector("list",nRuns)
+      test         <- vector("list",nRuns)
+      L            <- vector("list",1)
+      L[[1]]       <- list(pred=predD$pred,test=Target,runs=nRuns)
+      mgraph       (L,graph="REG",Grid=10,col=c("black","blue"))
+    })
         
     # Forecast stuff.
-    predictionQilian <- reactive({
-      ftimeseries:::predictDischargeWithDischarge(qQ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
-    })
-    predictionZhamashike <- reactive({
-      ftimeseries:::predictDischargeWithDischarge(qZ,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
-    })
-    output$predictionTextZhamashike <- renderText({
-      qZp <- predictionZhamashike()
-      qZp.m <- mean(unlist(qZp[1]))
-      qZp.s <- sd(unlist(qZp[1]))
-      outtext = paste("Predicted average montly discharge for Zhamashike in",
-                      qZp[[2]],
-                      "is",
-                      qZp.m,
-                      "m3/s with a standard deviation of",
-                      qZp.s,
-                      "m3/s.",
-                      sep=" ")
-    })
+    #output$predictionTextZhamashike <- renderText({
+    #  qZp <- predictionZhamashike()
+    #  qZp.m <- mean(unlist(qZp[1]))
+    #  qZp.s <- sd(unlist(qZp[1]))
+    #  outtext = paste("Predicted average montly discharge for Zhamashike in",
+    #                  qZp[[2]],
+    #                  "is",
+    #                  qZp.m,
+    #                  "m3/s with a standard deviation of",
+    #                  qZp.s,
+    #                  "m3/s.",
+    #                  sep=" ")
+    #})
     output$predictionTextQilian <- renderText({
       qQp <- predictionQilian()
-      qQp.m <- mean(unlist(qQp[1]))
-      qQp.s <- sd(unlist(qQp[1]))
+      qQpEns <- qQp[[1]]
+      temp <- 0
+      for (i in 1:input$ensembleSize){
+        temp = temp + qQpEns[[i]][input$target]
+      }
+      qQpTarget <- temp/input$ensembleSize
+      qQpError <- qQp[[2]]
+      #qQp.m <- mean(unlist(qQp[1]))
+      #qQp.s <- sd(unlist(qQp[1]))
+      monthString <- switch(input$target,
+                            "1" = "January 2000",
+                            "2" = "February 2000",
+                            "3" = "March 2000",
+                            "4" = "April 2000",
+                            "5" = "May 2000")
       outtext = paste("Predicted average montly discharge for Qilian in",
-                      qQp[[2]],
+                      #qQp[[2]],
+                      monthString,
                       "is",
-                      qQp.m,
-                      "m3/s with a standard deviation of",
-                      qQp.s,
+                      qQpTarget,
+                      "m3/s with an expected Error of",
+                      qQpError[1],
                       "m3/s.",
                       sep=" ")
     })
-    output$predictionTextSum <- renderText({
-      qQp <- predictionQilian()
-      qQp.m <- mean(unlist(qQp[1]))
-      qQp.s <- sd(unlist(qQp[1]))
-      qZp <- predictionZhamashike()
-      qZp.m <- mean(unlist(qZp[1]))
-      qZp.s <- sd(unlist(qZp[1]))
-      outtext = paste("The inflow to the gorge in the month",
-                      qZp[[2]],
-                      "is predicted to be an average of",
-                      (qZp.m + qQp.m),
-                      "m/s.",
-                      sep = " ")
-    })
+    #output$predictionTextSum <- renderText({
+    #  qQp <- predictionQilian()
+    #  qQp.m <- mean(unlist(qQp[1]))
+    #  qQp.s <- sd(unlist(qQp[1]))
+    #  qZp <- predictionZhamashike()
+    #  qZp.m <- mean(unlist(qZp[1]))
+    #  qZp.s <- sd(unlist(qZp[1]))
+    #  outtext = paste("The inflow to the gorge in the month",
+    #                  qZp[[2]],
+    #                  "is predicted to be an average of",
+    #                  (qZp.m + qQp.m),
+    #                  "m/s.",
+    #                  sep = " ")
+    #})
     output$predictionPlotQilian <- renderPlot({
       qQp <- predictionQilian()
       qQp.m <- mean(unlist(qQp[[1]]))
@@ -208,20 +287,20 @@ shinyServer(
       y = c(tail(qQts[[1]],n=1),qQp.m)
       lines(x,y, lty = 1, col = 'blue')
     })
-    output$predictionPlotZhamashike <- renderPlot({
-      qZp <- predictionZhamashike()
-      qZp.m <- mean(unlist(qZp[1]))
-      qZp.s <- sd(unlist(qZp[1]))
-      plot(qZts[[1]], lty = 1, col = "black", ylab = "Discharge Zhamashike [m3/d]")
-      t = time(qZts[[1]])
-      x = c(tail(t,n=1),(tail(t,n=1)+diff(tail(t,n=2))))
-      y = c(tail(qZts[[1]],n=1),qZp.m+2*qZp.s)
-      lines(x,y,lty=1,col='gray')
-      y = c(tail(qZts[[1]],n=1),qZp.m-2*qZp.s)
-      lines(x,y,lty=1,col='gray')
-      y = c(tail(qZts[[1]],n=1),qZp.m)
-      lines(x,y, lty = 1, col = 'blue')
-      })
+    #output$predictionPlotZhamashike <- renderPlot({
+    #  qZp <- predictionZhamashike()
+    #  qZp.m <- mean(unlist(qZp[1]))
+    #  qZp.s <- sd(unlist(qZp[1]))
+    #  plot(qZts[[1]], lty = 1, col = "black", ylab = "Discharge Zhamashike [m3/d]")
+    #  t = time(qZts[[1]])
+    #  x = c(tail(t,n=1),(tail(t,n=1)+diff(tail(t,n=2))))
+    #  y = c(tail(qZts[[1]],n=1),qZp.m+2*qZp.s)
+    #  lines(x,y,lty=1,col='gray')
+    #  y = c(tail(qZts[[1]],n=1),qZp.m-2*qZp.s)
+    #  lines(x,y,lty=1,col='gray')
+    #  y = c(tail(qZts[[1]],n=1),qZp.m)
+    #  lines(x,y, lty = 1, col = 'blue')
+    #  })
     
     
     
