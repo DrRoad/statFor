@@ -1,6 +1,12 @@
 # ui.R
 
-shinyUI(pageWithSidebar(
+shinyUI(fluidPage(
+  
+  # Allows plotting of 2 figures next to each other.
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+  ),
+  
   headerPanel("Runoff prediction for Qilian and Zhamashike"),
   sidebarPanel(
     # Sidebar panels are conditional to the tabs in the main panel.
@@ -179,19 +185,22 @@ shinyUI(pageWithSidebar(
                h4("Scatter plot"),
                textOutput("scatterPlotHeaderText"),
                br(),
-               plotOutput("scatterPlotQilian",width="400px",height="400px"),
+               plotOutput("scatterPlotQilian",width="50%"),
+               plotOutput("scatterPlotZhamashike",width="50%"),
+               br(),
                br(),
                br(),
                br(),
                h4("Time series plot"),
                htmlOutput("testSetTimeSeriesHeaderText"),
-               plotOutput("testSetTimeSeries",width="400px",height="400px"),
+               plotOutput("testSetTimeSeriesQilian",width="50%"),
+               plotOutput("testSetTimeSeriesZhamashike",width="50%"),
                value = 3),
       tabPanel("Forecast", 
                br(),
-               htmlOutput("predictionTextQilian"),
+               htmlOutput("predictionText"),
                plotOutput("predictionPlotQilian",width="600px",height="400px"),
-               #plotOutput("predictionPlotZhamashike",width="600px",height="400px"),
+               plotOutput("predictionPlotZhamashike",width="600px",height="400px"),
                value=4),
 #      tabPanel("Help", value = 5)
       id = "conditionedPanels"
