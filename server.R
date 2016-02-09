@@ -3,7 +3,7 @@
 rm(list = ls()); cat("\014"); graphics.off(); # Clear Workspace
 library(devtools)
 library(forecast); 
-#library(rminer); 
+library(rminer); 
 library(R.matlab) ;
 library(scales); 
 library(timeSeries); 

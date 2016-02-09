@@ -174,7 +174,7 @@ shinyUI(fluidPage(
                textOutput("timeSeriesDataText"),
                #plotOutput("plotDailyDischarge",width="600px",height="200px"),
                #plotOutput("plotWeeklyDischarge",width="600px", height="200px"),
-               plotOutput("plotMonthlyDischarge",width="600px", height="200px"),
+               plotOutput("plotMonthlyDischarge",width="600px", height="300px"),
                value=2), 
       tabPanel("Model", 
                br(),
@@ -199,8 +199,8 @@ shinyUI(fluidPage(
       tabPanel("Forecast", 
                br(),
                htmlOutput("predictionText"),
-               plotOutput("predictionPlotQilian",width="600px",height="400px"),
-               plotOutput("predictionPlotZhamashike",width="600px",height="400px"),
+               plotOutput("predictionPlotQilian",width="600px",height="300px"),
+               plotOutput("predictionPlotZhamashike",width="600px",height="300px"),
                value=4),
 #      tabPanel("Help", value = 5)
       id = "conditionedPanels"
