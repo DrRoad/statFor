@@ -1,5 +1,6 @@
 # server.R
 
+# LIBRARIES ----
 rm(list = ls()); cat("\014"); graphics.off(); # Clear Workspace
 library(devtools)
 library(forecast); 
@@ -25,10 +26,9 @@ library(rts)
 library(rgeos)
 #library(ncdf4)
 library(nnet)
-devtools::install_github("hydrosolutions/ftimeseries")
+#devtools::install_github("hydrosolutions/ftimeseries")
 library(ftimeseries)  # hydrosolutions time series forecast library.
-
-# Get data.
+# LOAD DATA & DEFAULTS. ----
 # Discharge
 qZhamashike <- read.csv(file="data/stations/Zhamashike_runoff_00_14.csv", header=TRUE, sep=",")
 qQilian <- read.csv(file="data/stations/Qilian_runoff_00_14.csv",header=TRUE,sep=",")
@@ -46,14 +46,11 @@ load("./data/qZ.mlpe.fit100.RData")
 # Pre-processing for display of input data.
 qZts <- ftimeseries:::readAndProcessData(qZhamashike,startDate)
 qQts <- ftimeseries:::readAndProcessData(qQilian,startDate)
-
-
-
-
+# SERVER ----
 shinyServer(
   function(input, output, session) {
     
-    # Map stuff
+# - Map stuff ----
     output$mapText <- renderText({
       outtext = switch(input$map_data,
                        "Topography" = paste("Topographical map of the model area."))
@@ -62,7 +59,7 @@ shinyServer(
     # Send a pre-rendered image, and don't delete the image after sending it
     output$preImage <- renderImage({
       filename <- switch(input$map_data,
-                         "Topography" = list("topo.pdf")
+                         "Topography" = list("topography.pdf")
       )
       
       filename <- normalizePath(file.path('./images',filename))
@@ -72,7 +69,7 @@ shinyServer(
            alt = paste("Topographical map of the model area.", input$map_data))
     }, deleteFile = FALSE)
     
-    # Time series data stuff
+# - Time series data stuff ----
     updateSelectInput(
       session, 
       "dischargeStation", 
@@ -137,7 +134,7 @@ shinyServer(
       }
     }) 
     
-    # Model configuration stuff.
+# - Model configuration stuff. ----
     predictionQilian <- reactive({
       #ftimeseries:::predictDischargeWithDischarge(qQilian,startDate,input$ensembleSize,input$model.type,input$test.for.fit,error.test)
       ftimeseries:::predictDischargeWithDischarge2(qQilian,
@@ -160,7 +157,7 @@ shinyServer(
     })
     output$modelInfoText <- renderUI({
       str1 = switch(input$model.type,
-                    'mlpe' = paste("The model of choice is the <b>multy-layer perceptron model</b>.", 
+                    'mlpe' = paste("The model of choice is the <b>multi-layer perceptron model</b>.", 
                                    "The multi-layer perceptron model is an artificial neural network model.",
                                    sep = "\n"))
       str2 = switch(input$test.for.fit,
@@ -327,7 +324,7 @@ shinyServer(
       mgraph       (L,graph="REG",Grid=10,col=c("black","blue"),main="Zhamashike")
     })
         
-    # Forecast stuff.
+# - Forecast stuff. ----
     #output$predictionTextZhamashike <- renderText({
     #  qZp <- predictionZhamashike()
     #  qZp.m <- mean(unlist(qZp[1]))
@@ -439,7 +436,7 @@ shinyServer(
                             "54" = "November 2014",
                             "55" = "December 2014"
                             )
-      outtext1 = paste("The <b>predicted average montly discharge for Qilian</b> in",
+      outtext1 = paste("The <b>predicted average monthly discharge for Qilian</b> in",
                        "<b>",
                       monthString,
                       "</b>",
@@ -448,8 +445,9 @@ shinyServer(
                       #toString(round(qQpEns[[1]][targetInput],digits=2)),
                       toString(round(qQpTarget[[1]],digits = 2)),
                       "m3/s</b>. The predicted average monthly discharge for <b>Zhamashike</b> is",
+                      "<b>",
                       toString(round(qZpTarget[[1]],digits = 2)),
-                      "m3/s.",
+                      "m3/s.</b>",
                       sep=" ")
       outtext2 = paste("The figure below shows the time series of historical discharge values (black) until issue date (black circle) and the predicted time series (blue) until target date (blue circle). The individual ensemble replicates are drawn in grey.")
       HTML(paste(outtext1, outtext2, sep = '<br/><br/>'))
