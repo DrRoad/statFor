@@ -25,7 +25,7 @@ library(rts)
 library(rgeos)
 #library(ncdf4)
 library(nnet)
-#devtools::install_github("hydrosolutions/ftimeseries")
+devtools::install_github("hydrosolutions/ftimeseries")
 library(ftimeseries)  # hydrosolutions time series forecast library.
 
 # Get data.
