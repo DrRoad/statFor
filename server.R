@@ -216,11 +216,11 @@ shinyServer(
                                    qQ.lag,
                                    h,
                                    2,
-                                   paste("Qilian: MAE", toString(round(err.mean[1], digits = 2)),
+                                   paste("MAE", toString(round(err.mean[1], digits = 2)),
                                          ", R22", toString(round(err.mean[2], digits = 2)), 
                                          ", RMSE",toString(round(err.mean[3], digits = 2))),
-                                   "observation [m3/s]",
-                                   "forecast [m3/s]",
+                                   "Qilian: observation [m3/s]",
+                                   "Qilian: forecast [m3/s]",
                                    input$ensembleSize)
       
     })
@@ -255,11 +255,11 @@ shinyServer(
                                    qZ.lag,
                                    h,
                                    2,
-                                   paste("Zhamashike: MAE", toString(round(err.mean[1], digits = 2)),
+                                   paste("MAE", toString(round(err.mean[1], digits = 2)),
                                          ", R22", toString(round(err.mean[2], digits = 2)), 
                                          ", RMSE",toString(round(err.mean[3], digits = 2))),
-                                   "observation [m3/s]",
-                                   "forecast [m3/s]",
+                                   "Zhamashike: observation [m3/s]",
+                                   "Zhamashike: forecast [m3/s]",
                                    input$ensembleSize)
       
     })
