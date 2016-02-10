@@ -1,16 +1,18 @@
 # ui.R
 
 shinyUI(fluidPage(
-  
+
+# CSS stylesheet ----  
   # Allows plotting of 2 figures next to each other.
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
-  
-  headerPanel("Runoff prediction for Qilian and Zhamashike"),
+# HEADER PANEL ----  
+  headerPanel("Discharge prediction for Qilian and Zhamashike"),
+# SIDEBAR PANEL ----
   sidebarPanel(
     # Sidebar panels are conditional to the tabs in the main panel.
-    # Maps.
+# - Maps tab. ----
     conditionalPanel(
       condition="input.conditionedPanels==1", 
       selectInput(
@@ -20,7 +22,7 @@ shinyUI(fluidPage(
         selected = "Topography"
       )
     ),
-    # Time series data.
+# - Time series data tab. ----
     conditionalPanel(
       condition="input.conditionedPanels==2",
       selectInput(
@@ -65,11 +67,11 @@ shinyUI(fluidPage(
 #        )
 #      )
     ),  # Data panel
-    # Model.
+# - Model tab. ----
     conditionalPanel(condition="input.conditionedPanels==3",
                      selectInput("model.type",
                                  label = "Choose a model",
-                                 choices = c("Multy-layer perceptron" = "mlpe"),
+                                 choices = c("Multi-layer perceptron" = "mlpe"),
                                  selected = "mlpe"),
                      selectInput("test.for.fit",
                                  label = "Chose quality criteria",
@@ -81,19 +83,19 @@ shinyUI(fluidPage(
                                  max = 100,
                                  value = 90)
     ),
-    # Forecast.
+# - Forecast tab. ----
     conditionalPanel(condition="input.conditionedPanels==4",
                      selectInput("forecastHorizon",
                                  label = "Choose a forecasting horizon",
-                                 choices = c(#"day",
-                                             #"week",
-                                             "month"
+                                 choices = c(#"dayly",
+                                             #"weekly",
+                                             "monthly"
                                              #"season"
                                              ),
-                                 selected = "day"),
+                                 selected = "monthly"),
                      #helpText("Computing forcast. This may take some time.")
                      conditionalPanel(
-                       condition="input.forecastHorizon=='month'",
+                       condition="input.forecastHorizon=='monthly'",
                        selectInput("target",
                                    label = "Choose a month to predict average discharge for",
                                    choices = c("June 2010"     = 1,
@@ -113,7 +115,7 @@ shinyUI(fluidPage(
                                                "August 2011"   = 15,
                                                "September 2011" = 16,
                                                "October 2011"  = 17,
-                                               "Nobember 2011" = 18,
+                                               "November 2011" = 18,
                                                "December 2011" = 19,
                                                "January 2012"  = 20,
                                                "February 2012" = 21,
@@ -137,7 +139,7 @@ shinyUI(fluidPage(
                                                "August 2013"   = 39,
                                                "September 2013" = 40,
                                                "October 2013"  = 41,
-                                               "Nobember 2013" = 42,
+                                               "November 2013" = 42,
                                                "December 2013" = 43,
                                                "January 2014"  = 44,
                                                "February 2014" = 45,
@@ -161,6 +163,7 @@ shinyUI(fluidPage(
 #                     helpText("Documentation.")
 #    ) 
   ),  # sidebar panel
+# MAIN PANEL ----
   mainPanel(
     # Add tabs to the main panel. 
     tabsetPanel(
